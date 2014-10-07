@@ -30,7 +30,7 @@ def make_chunks(whole_text):
 def make_text(chain_dict):
     """Takes a dictionary of markov chains and returns random text
     based off an original text."""
-    lookup = random.choice(chain_dict.keys())
+    lookup = random.choice(filter(lambda x: x[0][0].isupper(), chain_dict.keys()))
     sentence_list = [lookup[0], lookup[1]]
     while lookup in chain_dict:
         next_value = random.choice(chain_dict[lookup])
