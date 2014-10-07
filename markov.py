@@ -3,40 +3,45 @@
 from sys import argv
 import random
 
-def make_chains(input_text):
-    """Takes an input text as a string and returns a dictionary of
-    markov chains."""
+def make_chunks(whole_text):
+    """Takes a file, reads it and breaks it into pieces, passing each piece 
+    into a dictionary, returns dictionary"""
+
+    def make_chains(input_text):
+        """Takes an input text as a string and updates a dictionary of
+        markov chains."""
+
+        chunk_text = input_text.split()
+
+        for i in range(len(chunk_text)-2):
+                
+                key = (chunk_text[i], chunk_text[i+1])
+                value = chunk_text[i+2]
+                markov_chains.setdefault(key, []).append(value)
+        #return markov_chains
+
     markov_chains = {}
-    file_text = input_text.read().replace("\n", " ").split()
-    #print file_text
-    for i in range(len(file_text)-2):
-            
-            key = (file_text[i], file_text[i+1])
-            value = file_text[i+2]
-            # if key not in markov_chains:
-            #     markov_chains[key] = [value]
-            # else:
-            #     markov_chains[key].append(value)
-            markov_chains.setdefault(key, []).append(value)
+
+    file_text = whole_text.read().split("\r\n")
+    for chunk in file_text:
+        make_chains(chunk)
     return markov_chains
 
 def make_text(chain_dict):
     """Takes a dictionary of markov chains and returns random text
     based off an original text."""
-    start = random.choice(chain_dict.keys())
+    lookup = random.choice(chain_dict.keys())
+    sentence_list = [lookup[0], lookup[1]]
+    while lookup in chain_dict:
+        next_value = random.choice(chain_dict[lookup])
+        sentence_list.append(next_value)
+        lookup = (sentence_list[-2], sentence_list[-1])
+    return " ".join(sentence_list)
 
-    return "Here's some random text."
-
-def main():
-    # args = sys.argv
-    script, filename = argv
-
-    # Change this to read input_text from a file
-    input_text = open(filename)
-
-    chain_dict = make_chains(input_text)
-    random_text = make_text(chain_dict)
-    # print random_text
+def main(filename):
+    chain_dict = make_chunks(open(filename))
+    print make_text(chain_dict)
 
 if __name__ == "__main__":
-    main()
+    script, filename = argv
+    main(filename)
