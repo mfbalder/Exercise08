@@ -2,26 +2,47 @@
 
 from sys import argv
 import random
+import twitter
+import os
 
-def make_chunks(whole_text):
-    """Takes a file, reads it and breaks it into pieces, passing each piece 
-    into a dictionary, returns dictionary"""
+# Twitter API keys (being pulled from the bash .sh file)
+api = twitter.Api(consumer_key=os.environ.get('CONSUMER_KEY'), 
+                    consumer_secret=os.environ.get('CONSUMER_SECRET_KEY'), 
+                    access_token_key=os.environ.get('ACCESS_KEY_TOKEN'), 
+                    access_token_secret=os.environ.get('ACCESS_SECRET_TOKEN'))
 
-    markov_chains = {}
-    file_text = whole_text.read().replace('Mr.', '').replace('Mrs.', '').split()
+# print api.VerifyCredentials()
 
-    stripped_text = []
-    for i in range(len(file_text)):
-        word = file_text[i].replace('--', ' ').replace('"', '').strip(',*[]()"_|')
-        if word:
-            stripped_text.append(word)
 
-    for i in range(len(stripped_text)-2):
-        key = (stripped_text[i], stripped_text[i+1])
-        value = stripped_text[i+2]
-        markov_chains.setdefault(key, []).append(value)
+def assemble_dictionary(file_objects):
+    """takes a list of opened files, cleans them up, and adds them to the dictionary"""
+    
+    def clean_text(input_file):
+        """Takes a file as input and returns a cleaned up list of words in the file"""
+        file_text = input_file.read().replace('Mr.', '').replace('Mrs.', '').split()
 
-    return markov_chains
+        stripped_text = []
+        for i in range(len(file_text)):
+            word = file_text[i].replace('--', ' ').replace('"', '').strip(',*[]/()"_|')
+            if word:
+                stripped_text.append(word)
+
+        return stripped_text
+
+    def add_input_to_dictionary(clean_text):
+        """Adds a list of clean text to the dictionary"""
+        for i in range(len(clean_text)-2):
+            key = (clean_text[i], clean_text[i+1])
+            value = clean_text[i+2]
+            chains.setdefault(key, []).append(value)
+
+    chains = {}
+    for obj in file_objects:
+        stripped = clean_text(obj)
+        add_input_to_dictionary(stripped)
+    return chains
+
+
 
 def make_text(chain_dict):
     """Takes a dictionary of markov chains and returns random text
@@ -39,26 +60,28 @@ def make_text(chain_dict):
 
     return " ".join(sentence_list)
 
-def main(filename):
-    chain_dict = make_chunks(open(filename))
+def main(filenames):
+    file_objs = []
+    for i in filenames:
+        file_objs.append(open(i))
+
+    chain_dict = assemble_dictionary(file_objs)
 
     var1 = make_text(chain_dict)
     var2 = make_text(chain_dict)
     while len(var1 + var2) > 140:
         var1 = make_text(chain_dict)
         var2 = make_text(chain_dict)
-    print var1, var2
-    print len(var1 + var2)
-    # if len(var1 + var2) > 140:
-    #     if len(var1) > 140:
-    #         print make_text(chain_dict)
-    #     print var1
-    #     # print len(var1)
-    # else:
-    #     print var1, var2
-        # print len(var1 + var2)
-    #print make_text(chain_dict), make_text(chain_dict)
+    tweet = var1 + var2
+    print tweet
+    validate_tweet = raw_input("Would you like to tweet this quote? Y or N? ")
+    if validate_tweet.upper() == 'Y':
+        api.PostUpdate(tweet)
+        print "Success!"
+
+    
 
 if __name__ == "__main__":
-    script, filename = argv
-    main(filename)
+    # script, filename = argv
+    # main(filename)
+    main(argv[1:])
