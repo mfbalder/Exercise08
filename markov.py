@@ -8,11 +8,11 @@ def make_chunks(whole_text):
     into a dictionary, returns dictionary"""
 
     markov_chains = {}
-    file_text = whole_text.read().split()
+    file_text = whole_text.read().replace('Mr.', '').replace('Mrs.', '').split()
 
     stripped_text = []
     for i in range(len(file_text)):
-        word = file_text[i].strip(',[]()"-_|')
+        word = file_text[i].replace('--', ' ').replace('"', '').strip(',*[]()"_|')
         if word:
             stripped_text.append(word)
 
@@ -44,13 +44,18 @@ def main(filename):
 
     var1 = make_text(chain_dict)
     var2 = make_text(chain_dict)
-    if len(var1 + var2) > 140:
-        if len(var1) > 140:
-            print make_text(chain_dict)
-        print var1
-        # print len(var1)
-    else:
-        print var1, var2
+    while len(var1 + var2) > 140:
+        var1 = make_text(chain_dict)
+        var2 = make_text(chain_dict)
+    print var1, var2
+    print len(var1 + var2)
+    # if len(var1 + var2) > 140:
+    #     if len(var1) > 140:
+    #         print make_text(chain_dict)
+    #     print var1
+    #     # print len(var1)
+    # else:
+    #     print var1, var2
         # print len(var1 + var2)
     #print make_text(chain_dict), make_text(chain_dict)
 
