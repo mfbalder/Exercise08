@@ -61,9 +61,7 @@ def make_text(chain_dict):
     return " ".join(sentence_list)
 
 def main(filenames):
-    file_objs = []
-    for i in filenames:
-        file_objs.append(open(i))
+    file_objs = [open(i) for i in filenames]
 
     chain_dict = assemble_dictionary(file_objs)
 
